@@ -1,0 +1,26 @@
+doctype
+html(lang="en")
+    head
+        title Welcome to shutApp!
+        link(rel="stylesheet", href="/css/bootstrap.min.css")
+    body
+        div.container
+            h1 Real privacity chat! :D
+
+            div.row
+                div.col-lg-3
+                    h3 No identifition.
+                    p Just enter a nickname and starts to chat.
+                div.col-lg-3
+                    h3 No databases.
+                    p The messages are transfers usings sockets. No one message will be written in database or in disks on our servers.
+                div.col-lg-3
+                    h3 No traces.
+                    p After 5 minutes of chat idle, it will erase itself... forever. If you can't wait for this time, you can destroy by yourself too.
+                div.col-lg-3
+                    h3 No lies.
+                    p If you want to check with your eyes how this chat works, our code is open... So you can install it in your own server.
+            div
+                h2 Click here to generate a chat right now!
+                a.btn.btn-primary(href="/generate")
+                    Join free chat now

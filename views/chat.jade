@@ -1,0 +1,84 @@
+doctype
+html(lang="en")
+    head
+        title Welcome to shutApp!
+        link(rel="stylesheet", href="/css/bootstrap.min.css")
+        style.
+            body, html, .container {
+                height: 100%;
+            }
+            textarea {
+                width: 100%;
+                height: 20%;
+                margin: 20px 0;
+            }
+            .chat-list {
+                height: 60%;
+                overflow: auto;
+                background: rgba(0, 0, 0, 0.02);
+                margin-top: 20px;
+            }
+
+            #ready {
+                display: none;
+            }
+
+            .is-ready #notReady {
+                display: none;
+            }
+
+            .is-ready #ready {
+                display: block;
+            }
+        script(src="/socket.io/socket.io.js")
+        script.
+            (function () {
+                var
+                    socket = io.connect(document.location.protocol + "//" + document.domain),
+                    nickname = prompt("Tell me some nickname") || "No one...",
+                    sendMsg = function () {
+                        socket.emit("msg#{id}", "<strong>" + nickname + "</strong>" + ": " + document.getElementById('txt').value);
+                        document.getElementById('txt').value = "";
+                    }
+
+                socket.on("connect", function (data) {
+                    var disableList = document.getElementsByClassName('is-disabled'), i = 0, len = disableList.length;
+                    
+                    document.getElementsByTagName('body')[0].className = 'is-ready';
+              
+                    for (i = 0;i < len;i = i + 1) {
+                        disableList[i].disabled = false;
+                    }
+
+                    socket.emit("room", "#{id}");
+                    document.getElementById('go').onclick = function () {
+                        sendMsg();
+                    }
+
+                    window.onkeyup = function (e) {
+                        if(e.keyCode === 13) {
+                            sendMsg();
+                        }
+                    }
+                });
+
+                socket.on('appendMsg', function (data) {
+                    document.getElementById('chat').innerHTML = document.getElementById('chat').innerHTML + '<p>' + data + '</p>';
+                    document.getElementById('chat').scrollTop = '10000000'
+                });
+            }());
+            
+    body
+        div.container
+            div#chat.chat-list
+            textarea#txt.is-disabled("disabled")
+            div.row
+                div.col-lg-2
+                    button#go.btn.btn-default.is-disabled("disabled") Send
+                div.col-lg-8
+                    div#notReady.alert
+                        strong Connecting.... 
+                    div#ready.alert.alert-success
+                        strong Ready to chat!
+                div.col-lg-2.text-right
+                    a.btn.btn-danger(href="/destroy/#{id}") Delete this chat
