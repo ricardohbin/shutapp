@@ -29,8 +29,10 @@ fs.readFile("conf/keys.json", function (err, data) {
 });
 
 //function that maintains redis alive
-function redisHeartbeat (hash) {
-    redis.set(hash, 1);
+function redisHeartbeat (hash, isFirstBeat) {
+    if (isFirstBeat) {
+    	redis.set(hash, 1);
+    }
     redis.expire(hash, 60 * 5);
 }
 
@@ -52,7 +54,7 @@ app.get("/", function(req, res) {
 //creating token
 app.get("/generate", function (req, res) {
     var hash = crypto.createHmac("sha1", secretKey).update(String(new Date()) + req.headers['user-agent'] + req.socket.remoteAddress).digest("hex");
-    redisHeartbeat(hash); 
+    redisHeartbeat(hash, true);
     res.redirect("/chat/" + hash);
 });
 
@@ -72,22 +74,22 @@ app.get("/chat/:hash", function (req, res) {
             res.send(404, "Not found in our server");
         } else {
             res.render("chat", {id: hash });
-            io.sockets.on("connection", function (socket) {
-                //avoiding duplicates binds
-                if (typeof socket._events["msg" + hash] === "undefined") { 
-                    socket.on("msg" + hash, function (txt) {
-                        //renew the redis
-                        redisHeartbeat(hash); 
-                        socket.in(hash).broadcast.emit("appendMsg", txt);
-                        socket.in(hash).emit("appendMsg", txt);
-                    });
-                }
-
-                socket.on("room", function (room) {
-                    socket.join(room);
-                });
-            });
         }
     });
 
+});
+
+io.sockets.on("connection", function (socket) { 
+    socket.on("msg", function (hash, txt) {
+    	console.log("HIT");
+        //renew the redis
+        redisHeartbeat(hash, false); 
+        socket.in(hash).broadcast.emit("appendMsg", txt);
+        socket.in(hash).emit("appendMsg", txt);
+    });
+
+    socket.on("room", function (hash) {
+    	redisHeartbeat(hash, false);
+        socket.join(hash);
+    });
 });

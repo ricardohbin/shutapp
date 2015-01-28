@@ -36,8 +36,9 @@ html(lang="en")
                 var
                     socket = io.connect(document.location.protocol + "//" + document.domain),
                     nickname = prompt("Tell me some nickname") || "No one...",
-                    sendMsg = function () {
-                        socket.emit("msg#{id}", "<strong>" + nickname + "</strong>" + ": " + document.getElementById('txt').value);
+                    sendMsg = function (value) {
+                        value = value || document.getElementById('txt').value;
+                        socket.emit("msg", "#{id}", "<strong>" + nickname + "</strong>" + ": " + value);
                         document.getElementById('txt').value = "";
                     }
 
@@ -51,12 +52,15 @@ html(lang="en")
                     }
 
                     socket.emit("room", "#{id}");
+
+                    sendMsg("entered...");
+
                     document.getElementById('go').onclick = function () {
                         sendMsg();
                     }
 
                     window.onkeyup = function (e) {
-                        if(e.keyCode === 13) {
+                        if(e.keyCode === 13 && document.activeElement instanceof HTMLTextAreaElement) {
                             sendMsg();
                         }
                     }
